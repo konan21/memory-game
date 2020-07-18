@@ -47,7 +47,6 @@ class Card {
     open() {
         const img = new Image();
         img.addEventListener("load", () => {
-            // this.flipHorizontally();
             ctx.drawImage(img, this.position.x, this.position.y, CARD_SIZE, CARD_SIZE);
         }, false);
         img.src = "images/" + this.picture;
@@ -59,18 +58,6 @@ class Card {
         ctx.clearRect(this.position.x, this.position.y, CARD_SIZE, CARD_SIZE);
         this.drawRect();
         this.isOpen = false;
-    }
-
-    flipCard(timestamp) {
-        ctx.clearRect(this.position.x, this.position.y, CARD_SIZE, CARD_SIZE);
-        this.flipHorizontally();
-        window.requestAnimationFrame(this.flipCard);
-    }
-
-    flipHorizontally() {
-        ctx.translate(canvas.width / 2, 0);
-        ctx.scale(-1, 1);
-        ctx.translate(-canvas.width / 2, 0);
     }
 
     setPicture() {
