@@ -1,9 +1,9 @@
 const GRID_SIZE = 4;
-const CARD_SIZE = 115;
-const CARD_OFFSET = 25;
+const CARD_SIZE = 115;  // TODO: move to Card class
+const CARD_OFFSET = 25; // TODO: move to Card class
 const TIME_TO_SHOW = 1000;
 
-let freezeGame = false;
+let isGameFreezed = false;
 let PICTURES = [
     "art-parodies.jpg",
     "color-scheme.jpg",
@@ -31,8 +31,12 @@ class Card {
             y: y
         };
         this.isOpen = false;
-        this.drawRect();
+        this.init();
+    }
+
+    init() {
         this.setPicture();
+        this.drawRect();
     }
 
     drawRect() {
@@ -43,9 +47,11 @@ class Card {
     open() {
         const img = new Image();
         img.addEventListener("load", () => {
+            // this.flipHorizontally();
             ctx.drawImage(img, this.position.x, this.position.y, CARD_SIZE, CARD_SIZE);
         }, false);
         img.src = "images/" + this.picture;
+        this.pictureInstance = img;
         this.isOpen = true;
     }
 
@@ -53,6 +59,18 @@ class Card {
         ctx.clearRect(this.position.x, this.position.y, CARD_SIZE, CARD_SIZE);
         this.drawRect();
         this.isOpen = false;
+    }
+
+    flipCard(timestamp) {
+        ctx.clearRect(this.position.x, this.position.y, CARD_SIZE, CARD_SIZE);
+        this.flipHorizontally();
+        window.requestAnimationFrame(this.flipCard);
+    }
+
+    flipHorizontally() {
+        ctx.translate(canvas.width / 2, 0);
+        ctx.scale(-1, 1);
+        ctx.translate(-canvas.width / 2, 0);
     }
 
     setPicture() {
@@ -77,8 +95,10 @@ class Card {
     let counter = 0;
     for (let i = 0; i < GRID_SIZE; i++) {
         for (let j = 0; j < GRID_SIZE; j++) {
-            const positionX = (i * (CARD_SIZE + CARD_OFFSET)) + CARD_OFFSET;
-            const positionY = (j * (CARD_SIZE + CARD_OFFSET)) + CARD_OFFSET;
+            const startX = (canvas.width - ((CARD_SIZE + CARD_OFFSET) * GRID_SIZE)) / 2;
+            const startY = (canvas.height - ((CARD_SIZE + CARD_OFFSET) * GRID_SIZE)) / 2;
+            const positionX = startX + (i * (CARD_SIZE + CARD_OFFSET)) + (CARD_OFFSET / 2);
+            const positionY = startY + (j * (CARD_SIZE + CARD_OFFSET)) + (CARD_OFFSET / 2);
             // draw shape
             const card = new Card(counter, positionX, positionY);
             cards.push(card);
@@ -89,11 +109,14 @@ class Card {
     console.log("CARDS:", cards);
 })();
 
-// TODO
 const drawWinning = () => {
-    ctx.font = "28px Georgia";
-    ctx.fillStyle = "fuchsia";
-    ctx.fillText("I can draw text, too!", 10, 50);
+    const text = "YOU ARE WINNER!!!"
+    ctx.clearRect(0, (canvas.height / 2) - 32, canvas.width, 32);
+    ctx.font = "28px Arial, sans-serif";
+    ctx.fillStyle = "black";
+    ctx.textAlign = "center";
+    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+    console.log(text);
 };
 
 const checkCardsMatch = (card1, card2) => card1.picture === card2.picture;
@@ -106,26 +129,30 @@ const isIntersect = (point, card) => {
     return point.x >= cardStartX && point.x <= cardEndX && point.y >= cardStartY && point.y <= cardEndY;
 };
 
-canvas.addEventListener("click", e => {
-    if (freezeGame) {
-        return;
-    }
-    const mousePoint = {
+const getMousePosition = (e) => {
+    return {
         x: e.clientX - canvas.offsetLeft,
         y: e.clientY - canvas.offsetTop
+    };
+};
+
+canvas.addEventListener("click", e => {
+    if (isGameFreezed) {
+        return;
     }
+    const mousePoint = getMousePosition(e);
     cards.forEach(card => {
         if (isIntersect(mousePoint, card) && !card.isOpen) {
             card.open();
             if (lastClickedCard !== undefined) {
                 if (!checkCardsMatch(card, lastClickedCard)) {
-                    freezeGame = true;
+                    isGameFreezed = true;
                     const timer = setTimeout(() => {
                         card.close();
                         lastClickedCard.close();
                         lastClickedCard = undefined;
+                        isGameFreezed = false;
                         clearTimeout(timer);
-                        freezeGame = false;
                     }, TIME_TO_SHOW);
                 } else {
                     cardsMatch.push(card, lastClickedCard);
@@ -139,6 +166,6 @@ canvas.addEventListener("click", e => {
         }
     });
     if (cardsMatch.length === cards.length) {
-        console.log("YOU ARE WINNER!!!");
+        drawWinning();
     }
 });
