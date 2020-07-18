@@ -23,12 +23,6 @@ const cards = [];
 const cardsMatch = [];
 let lastClickedCard;
 
-const getRandomPictureInt = () => {
-    const arrPictures = PICTURES.filter(pic => pic != null);
-    const newRandom = Math.floor(Math.random() * Math.floor(arrPictures.length - 1));
-    return PICTURES.findIndex(pic => pic === arrPictures[newRandom]);
-};
-
 class Card {
     constructor(id, x, y) {
         this.id = id;
@@ -62,14 +56,20 @@ class Card {
     }
 
     setPicture() {
-        const randomInt = getRandomPictureInt();
-        const pictureItem = PICTURES[randomInt];
+        const id = this.getRandomPictureId();
+        const pictureItem = PICTURES[id];
         if (pictureItem != null) {
-            this.picture = PICTURES[randomInt];
-            PICTURES[randomInt] = undefined;
+            this.picture = PICTURES[id];
+            PICTURES[id] = undefined;
         } else {
             this.setPicture();
         }
+    }
+
+    getRandomPictureId () {
+        const arrPictures = PICTURES.filter(pic => pic != null);
+        const newRandom = Math.floor(Math.random() * Math.floor(arrPictures.length - 1));
+        return PICTURES.findIndex(pic => pic === arrPictures[newRandom]);
     }
 }
 
@@ -88,6 +88,13 @@ class Card {
 
     console.log("CARDS:", cards);
 })();
+
+// TODO
+const drawWinning = () => {
+    ctx.font = "28px Georgia";
+    ctx.fillStyle = "fuchsia";
+    ctx.fillText("I can draw text, too!", 10, 50);
+};
 
 const checkCardsMatch = (card1, card2) => card1.picture === card2.picture;
 
