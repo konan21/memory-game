@@ -2,6 +2,8 @@ const GRID_SIZE = 4;
 const CARD_SIZE = 115;
 const CARD_OFFSET = 25;
 const TIME_TO_SHOW = 1000;
+
+let freezeGame = false;
 let PICTURES = [
     "art-parodies.jpg",
     "color-scheme.jpg",
@@ -69,8 +71,6 @@ class Card {
             this.setPicture();
         }
     }
-
-    reset
 }
 
 (function draw() {
@@ -91,30 +91,34 @@ class Card {
 
 const checkCardsMatch = (card1, card2) => card1.picture === card2.picture;
 
-function isIntersect(point, card) {
+const isIntersect = (point, card) => {
     const cardStartX = card.position.x;
     const cardStartY = card.position.y;
     const cardEndX = cardStartX + CARD_SIZE;
     const cardEndY = cardStartY + CARD_SIZE;
     return point.x >= cardStartX && point.x <= cardEndX && point.y >= cardStartY && point.y <= cardEndY;
-}
+};
 
 canvas.addEventListener("click", e => {
+    if (freezeGame) {
+        return;
+    }
     const mousePoint = {
         x: e.clientX - canvas.offsetLeft,
         y: e.clientY - canvas.offsetTop
     }
-    // TODO: fix error when open 3 card step by step (didn't wait TIME_TO_SHOW ms);
     cards.forEach(card => {
         if (isIntersect(mousePoint, card) && !card.isOpen) {
             card.open();
             if (lastClickedCard !== undefined) {
                 if (!checkCardsMatch(card, lastClickedCard)) {
+                    freezeGame = true;
                     const timer = setTimeout(() => {
                         card.close();
                         lastClickedCard.close();
                         lastClickedCard = undefined;
                         clearTimeout(timer);
+                        freezeGame = false;
                     }, TIME_TO_SHOW);
                 } else {
                     cardsMatch.push(card, lastClickedCard);
